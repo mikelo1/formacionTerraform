@@ -7,6 +7,30 @@ terraform {
     }
 }
 
+
+locals {  # CONSTANTES
+    ingress = { 
+        "ssh": {
+            from_port   = 22
+            to_port     = 22
+            protocol    = "tcp"
+            cidr_blocks = ["0.0.0.0/0"]
+        },
+        "http": {
+            from_port   = 8080
+            to_port     = 8080
+            protocol    = "tcp"
+            cidr_blocks = ["0.0.0.0/0"]
+        },
+        "mariadb": {
+            from_port   = 3306
+            to_port     = 3306
+            protocol    = "tcp"
+            cidr_blocks = ["10.0.1.0/24"]
+        }
+    }
+}
+
 # VPC
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc
 resource "aws_vpc" "vpc" {
@@ -26,6 +50,7 @@ resource "aws_subnet" "subnet" {
     availability_zone    = var.subnets[count.index].subnet_az_name # (Optional) The AZ for the subnet.
     availability_zone_id = var.subnets[count.index].subnet_az_id # (Optional) The AZ ID of the subnet.
     cidr_block           = var.subnets[count.index].subnet_cidr # (Required) The CIDR block for the subnet.
+    map_public_ip_on_launch = var.subnets[count.index].subnet_public # (Optional) Specify true to indicate that instances launched into the subnet should be assigned a public IP address. Default is false.
     vpc_id               = aws_vpc.vpc.id # (Required) The VPC ID.
     tags = { # (Optional) A map of tags to assign to the resource.
         name = var.subnets[count.index].subnet_name
@@ -68,33 +93,9 @@ resource "aws_route_table_association" "conexion_subredes" {
   route_table_id = aws_route_table.router.id
 }
 
-
-locals {  # CONSTANTES
-    ingress = { 
-        "ssh": {
-            from_port   = 22
-            to_port     = 22
-            protocol    = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-        },
-        "http": {
-            from_port   = 8080
-            to_port     = 8080
-            protocol    = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-        },
-        "mariadb": {
-            from_port   = 3306
-            to_port     = 3306
-            protocol    = "tcp"
-            cidr_blocks = ["10.0.1.0/24"]
-        }
-    }
-}
-
 # SecurityGroups
 # Crear security group para conectarnos a la máquina
-#https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 resource "aws_security_group" "security_group" {
   name        = "${var.nombre_vpc}_sg"
   description = "security group para la VPC ${var.nombre_vpc}"
@@ -114,9 +115,4 @@ resource "aws_security_group" "security_group" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-# OUTPUT DEL SECURITY_GROUP.ID
-output "security_group_id"{
-    value = [ aws_security_group.security_group.id ]
 }

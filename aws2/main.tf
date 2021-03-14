@@ -12,17 +12,6 @@ provider "aws" {
     profile = "default"
 }
 
-
-module "instancias" {
-    source         = "./instancias"
-    aws_ami_owners = var.aws_ami_owners
-    aws_ami_nombre = var.aws_ami_nombre
-    volumenes      = var.volumenes
-    nombre_clave   = var.id_clave
-    nombre_maquina = var.nombre_maquina
-    security_groups= module.redes.security_group_id
-}
-
 # Creamos el par de claves privada y pública
 module "claves" {
     source             = "./claves"
@@ -37,3 +26,12 @@ module "redes" {
     subnets     = var.subnets
 }
 
+module "instancias" {
+    source         = "./instancias"
+    aws_ami_owners = var.aws_ami_owners
+    aws_ami_nombre = var.aws_ami_nombre
+    volumenes      = var.volumenes
+    nombre_clave   = var.id_clave
+    nombre_maquina = var.nombre_maquina
+    security_groups= [ module.redes.security_group_id ]
+}

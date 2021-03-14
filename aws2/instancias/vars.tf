@@ -40,6 +40,6 @@ variable "nombre_maquina" {
     type = string
 }
 variable "security_groups" {
-    description = "Nombre de la imagen a utilizar"
+    description = "Lista de identificadores de security groups"
     type = list(string)
 }
